@@ -10,17 +10,17 @@
 
 | Mục | Nội dung |
 |-----|----------|
-| Họ và tên | (điền họ tên) |
-| Mã học viên | (điền mã học viên) |
-| Repo | (điền link repo K4-L3A-DAY12-HoVaTen-MSSV-CloudServicesAndDeployment) |
+| Họ và tên | Tạ Quang Dũng |
+| Mã học viên | 2A202602588 |
+| Repo | https://github.com/taquangdung123/K4-L3A-DAY12-TaQuangDung-2A202602588-CloudServiceAndDeployment |
 
 ## Service
 
 | Mục | Nội dung |
 |-----|----------|
-| Public URL | https://TODO-thay-bang-url-that.up.railway.app |
-| Platform | Railway / Render / Cloud Run — (điền platform bạn dùng) |
-| Ngày deploy | (điền ngày) |
+| Public URL | Chưa có — phương án Docker Compose local tại `http://localhost:8000` |
+| Platform | Railway (cấu hình mục tiêu); hiện dùng Docker Desktop local fallback |
+| Ngày kiểm tra local | 2026-09-28 |
 
 ## Biến Môi Trường Đã Set Trên Cloud
 
@@ -28,12 +28,12 @@ Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
 
 | Biến | Đã set | Ghi chú |
 |------|--------|---------|
-| `PORT` | ✅ | platform tự gán |
-| `AGENT_API_KEY` | ✅ | đặt trong dashboard, không nằm trong repo |
-| `REDIS_URL` | ✅ | (điền: Redis add-on của platform / Upstash / ...) |
-| `RATE_LIMIT_PER_MINUTE` | ✅ | 10 |
-| `MONTHLY_BUDGET_USD` | ✅ | 10.0 |
-| `LOG_LEVEL` | ✅ | INFO |
+| `PORT` | ✅ local | 8000 trong Docker Compose; cloud chưa set |
+| `AGENT_API_KEY` | ✅ local | Compose nội suy từ `.env` bị Git ignore; cloud chưa set |
+| `REDIS_URL` | ✅ local | `redis://redis:6379/0` trong Compose; cloud chưa tạo Redis add-on |
+| `RATE_LIMIT_PER_MINUTE` | ✅ local | 10; cloud chưa set |
+| `MONTHLY_BUDGET_USD` | ✅ local | 10.0; cloud chưa set |
+| `LOG_LEVEL` | ✅ local | INFO; cloud chưa set |
 
 ## Lệnh Kiểm Tra
 
@@ -72,16 +72,21 @@ done; echo
 
 Dán output của các lệnh trên vào đây:
 
-```
-(điền output)
+```text
+GET /health  200 {"status":"ok","service":"day12-agent","version":"1.0.0"}
+GET /ready   200 {"status":"ready","redis":true}
+POST /ask (không API key) 401
+POST /ask (có API key, X-User-Id=sv-test) 200
+docker compose exec -T redis redis-cli ping -> PONG
+docker compose exec -T agent id -> uid=100(agent) gid=101(agent)
 ```
 
 ## Ảnh Chụp Màn Hình
 
 Đặt ảnh trong thư mục `screenshots/`:
 
-- `screenshots/dashboard.png` — trang quản lý service trên platform
-- `screenshots/health.png` — kết quả gọi `/health` từ trình duyệt hoặc curl
+- `screenshots/dashboard.png` — chỉ cần bổ sung sau khi deploy cloud thật
+- `screenshots/health.png` — kết quả gọi `/health` từ agent chạy bằng Docker Compose
 
 ---
 
@@ -96,6 +101,9 @@ Không đăng ký được tài khoản cloud? Vẫn nộp được bài, nhưng
    `http://localhost:8000`
 5. Ghi rõ lý do không deploy được vào phần dưới đây:
 
-```
-(điền lý do nếu dùng phương án dự phòng, ngược lại xóa mục này)
+```text
+Docker Compose đã chạy thật hai service `agent` và `redis`; cả hai đều healthy.
+Agent dùng `redis://redis:6379/0`, Redis trả `PONG`, `/ready` trả 200 và lịch sử
+hội thoại được quan sát trong key `history:docker-real-redis`. Chưa có browser session
+cloud đã đăng nhập, vì vậy đây là local fallback chứ không được trình bày như deploy cloud.
 ```
