@@ -18,9 +18,9 @@
 
 | Mục | Nội dung |
 |-----|----------|
-| Public URL | Chưa có — phương án Docker Compose local tại `http://localhost:8000` |
-| Platform | Railway (cấu hình mục tiêu); hiện dùng Docker Desktop local fallback |
-| Ngày kiểm tra local | 2026-09-28 |
+| Public URL | https://k4-l3a-day12-taquangdung-2a202602588-cloudservic-production.up.railway.app |
+| Platform | Railway |
+| Ngày deploy | 2026-09-28 |
 
 ## Biến Môi Trường Đã Set Trên Cloud
 
@@ -28,12 +28,12 @@ Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
 
 | Biến | Đã set | Ghi chú |
 |------|--------|---------|
-| `PORT` | ✅ local | 8000 trong Docker Compose; cloud chưa set |
-| `AGENT_API_KEY` | ✅ local | Compose nội suy từ `.env` bị Git ignore; cloud chưa set |
-| `REDIS_URL` | ✅ local | `redis://redis:6379/0` trong Compose; cloud chưa tạo Redis add-on |
-| `RATE_LIMIT_PER_MINUTE` | ✅ local | 10; cloud chưa set |
-| `MONTHLY_BUDGET_USD` | ✅ local | 10.0; cloud chưa set |
-| `LOG_LEVEL` | ✅ local | INFO; cloud chưa set |
+| `PORT` | ✅ | Railway tự gán |
+| `AGENT_API_KEY` | ✅ | Railway service variable, giá trị được che kín |
+| `REDIS_URL` | ✅ | Reference variable `${{Redis.REDIS_URL}}` từ Railway Redis |
+| `RATE_LIMIT_PER_MINUTE` | ✅ | Railway service variable, giá trị 10 |
+| `MONTHLY_BUDGET_USD` | ✅ | Railway service variable, giá trị 10.0 |
+| `LOG_LEVEL` | ✅ | Railway service variable, giá trị INFO |
 
 ## Lệnh Kiểm Tra
 
@@ -76,34 +76,14 @@ Dán output của các lệnh trên vào đây:
 GET /health  200 {"status":"ok","service":"day12-agent","version":"1.0.0"}
 GET /ready   200 {"status":"ready","redis":true}
 POST /ask (không API key) 401
-POST /ask (có API key, X-User-Id=sv-test) 200
-docker compose exec -T redis redis-cli ping -> PONG
-docker compose exec -T agent id -> uid=100(agent) gid=101(agent)
+POST /ask (có API key, X-User-Id=cp5-final) 200, response có answer
+Rate limit (X-User-Id=cp5-rate-final): 200 x10, sau đó 429 x5
+Railway dashboard: agent Online, Redis Online
 ```
 
 ## Ảnh Chụp Màn Hình
 
 Đặt ảnh trong thư mục `screenshots/`:
 
-- `screenshots/dashboard.png` — chỉ cần bổ sung sau khi deploy cloud thật
-- `screenshots/health.png` — kết quả gọi `/health` từ agent chạy bằng Docker Compose
-
----
-
-## Nếu Dùng Phương Án Dự Phòng
-
-Không đăng ký được tài khoản cloud? Vẫn nộp được bài, nhưng CP5 tối đa 60% điểm:
-
-1. Đặt `LOCAL_FALLBACK=true` trong `.env`
-2. Chạy `docker compose up -d` rồi kiểm tra `docker compose ps`
-3. Chụp màn hình vào `screenshots/`
-4. Chạy `pytest tests/test_cp5.py -v` — bộ test sẽ tự chuyển sang kiểm tra
-   `http://localhost:8000`
-5. Ghi rõ lý do không deploy được vào phần dưới đây:
-
-```text
-Docker Compose đã chạy thật hai service `agent` và `redis`; cả hai đều healthy.
-Agent dùng `redis://redis:6379/0`, Redis trả `PONG`, `/ready` trả 200 và lịch sử
-hội thoại được quan sát trong key `history:docker-real-redis`. Chưa có browser session
-cloud đã đăng nhập, vì vậy đây là local fallback chứ không được trình bày như deploy cloud.
-```
+- `screenshots/dashboard.png` — Railway dashboard với agent và Redis Online
+- `screenshots/health.png` — kết quả gọi public endpoint `/health`
